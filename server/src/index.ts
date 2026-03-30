@@ -195,19 +195,17 @@ io.on('connection', (socket) => {
     if (!name) { socket.emit('error', { message: 'Nome non valido' }); return; }
     const existing = room.players.find((p) => p.name.toLowerCase() === name.toLowerCase());
     if (existing) {
-      if (!existing.isConnected) {
-        // Reconnecting player — replace their socket ID
-        const oldId = existing.id;
-        existing.id = socket.id;
-        existing.isConnected = true;
-        playerRoom.delete(oldId);
-        playerRoom.set(socket.id, code);
-        socket.join(code);
-        socket.emit('joinedRoom', { playerId: socket.id });
-        broadcast(room);
-        return;
-      }
-      socket.emit('error', { message: 'Nome già in uso in questa stanza' }); return;
+      // In lobby, always allow rejoin — replace the stale socket
+      // (disconnect events often don't fire on cloud proxies)
+      const oldId = existing.id;
+      existing.id = socket.id;
+      existing.isConnected = true;
+      playerRoom.delete(oldId);
+      playerRoom.set(socket.id, code);
+      socket.join(code);
+      socket.emit('joinedRoom', { playerId: socket.id });
+      broadcast(room);
+      return;
     }
 
     const player: Player = { id: socket.id, name, score: 0, hand: [], isConnected: true };
