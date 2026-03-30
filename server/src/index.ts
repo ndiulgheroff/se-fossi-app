@@ -407,5 +407,18 @@ io.on('connection', (socket) => {
   });
 });
 
+// Health check endpoint
+app.get('/health', (_req, res) => res.send('ok'));
+
+// Keep alive on Render free tier (ping every 14 min to prevent spin-down)
 const PORT = process.env.PORT ?? 3001;
-httpServer.listen(PORT, () => console.log(`🃏  Se Fossi... server → http://localhost:${PORT}`));
+httpServer.listen(PORT, () => {
+  console.log(`🃏  Se Fossi... server → http://localhost:${PORT}`);
+
+  const url = process.env.RENDER_EXTERNAL_URL;
+  if (url) {
+    setInterval(() => {
+      fetch(`${url}/health`).catch(() => {});
+    }, 14 * 60 * 1000);
+  }
+});
