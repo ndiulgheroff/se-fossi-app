@@ -193,7 +193,20 @@ io.on('connection', (socket) => {
     if (room.phase !== 'lobby') { socket.emit('error', { message: 'Partita già iniziata' }); return; }
     if (room.players.length >= 10) { socket.emit('error', { message: 'Stanza piena (max 10 giocatori)' }); return; }
     if (!name) { socket.emit('error', { message: 'Nome non valido' }); return; }
-    if (room.players.some((p) => p.name.toLowerCase() === name.toLowerCase())) {
+    const existing = room.players.find((p) => p.name.toLowerCase() === name.toLowerCase());
+    if (existing) {
+      if (!existing.isConnected) {
+        // Reconnecting player — replace their socket ID
+        const oldId = existing.id;
+        existing.id = socket.id;
+        existing.isConnected = true;
+        playerRoom.delete(oldId);
+        playerRoom.set(socket.id, code);
+        socket.join(code);
+        socket.emit('joinedRoom', { playerId: socket.id });
+        broadcast(room);
+        return;
+      }
       socket.emit('error', { message: 'Nome già in uso in questa stanza' }); return;
     }
 
