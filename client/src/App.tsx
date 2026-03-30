@@ -26,6 +26,14 @@ export default function App() {
 
     socket.on('gameStateUpdate', (state: PublicGameState) => {
       setGameState(state);
+      // Fallback: if server accepted us but joinedRoom/roomCreated was lost,
+      // detect our socket ID in the players list and auto-transition
+      const myId = socket.id;
+      if (myId && state.players.some((p) => p.id === myId)) {
+        setPlayerId((prev) => prev ?? myId);
+        setRoomCode((prev) => prev ?? state.code);
+        setScreen('room');
+      }
     });
 
     socket.on('handUpdate', ({ hand }: { hand: string[] }) => {
