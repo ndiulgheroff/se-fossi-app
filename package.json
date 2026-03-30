@@ -1,0 +1,14 @@
+{
+  "name": "se-fossi-app",
+  "version": "1.0.0",
+  "description": "Se Fossi... - Multiplayer Italian party card game",
+  "scripts": {
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install",
+    "build:client": "cd client && npm run build",
+    "start": "npm run build:client && cd server && npm start",
+    "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm run dev\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
